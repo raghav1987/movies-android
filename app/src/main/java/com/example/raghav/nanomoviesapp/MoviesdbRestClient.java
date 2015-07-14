@@ -8,9 +8,8 @@ import com.loopj.android.http.RequestParams;
  * Created by raghav on 7/14/15.
  */
 public class MoviesdbRestClient {
-    private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
-    private static final String DATA_BASE_URL = "http://api.themoviedb.org/3/discover/movie";
 
+    private static final String BASE_URL = "http://api.themoviedb.org/3/discover/movie";
     private static AsyncHttpClient client = new AsyncHttpClient();
 
     public static void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
@@ -22,6 +21,6 @@ public class MoviesdbRestClient {
     }
 
     private static String getAbsoluteUrl(String relativeUrl) {
-        return DATA_BASE_URL + relativeUrl;
+        return BASE_URL + relativeUrl;
     }
 }

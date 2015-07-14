@@ -1,6 +1,7 @@
 package com.example.raghav.nanomoviesapp;
 
 import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -8,8 +9,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.GridLayout;
 import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -18,6 +23,8 @@ import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 
 /**
@@ -34,6 +41,9 @@ import org.json.JSONObject;
  */
 public class MoviesFragment extends android.support.v4.app.Fragment {
 
+    private ArrayList<MovieData> mCurrentMovieList = new ArrayList<>();
+    private ImageAdapter myImageAdapter;
+
     public MoviesFragment() {
     }
 
@@ -42,20 +52,36 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         GridView moviesGridView = (GridView) rootView.findViewById(R.id.gridview_movies);
-        fetchMovieList();
+        myImageAdapter = new ImageAdapter(getActivity(),mCurrentMovieList);
+        moviesGridView.setAdapter(myImageAdapter);
+        fetchMovieList("popularity.desc");
         return rootView;
     }
 
-    private void fetchMovieList() {
+    private void fetchMovieList(String sortParameter) {
         RequestParams params = new RequestParams();
-        params.put("api_key","0afa7d3d93c6b0544e3f2a01fc31c0dd");
-        params.put("sort_by","popularity.desc");
-        MoviesdbRestClient.get("",params,new JsonHttpResponseHandler() {
+        params.put("api_key", "0afa7d3d93c6b0544e3f2a01fc31c0dd");
+        params.put("sort_by", sortParameter);
+        MoviesdbRestClient.get("", params, new JsonHttpResponseHandler() {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.v("Success Response", Integer.toString(statusCode));
-                Log.v("Success Response",response.toString());
+                Log.v("Success Response", response.toString());
+
+                try {
+                    JSONArray resultArray = response.getJSONArray("results");
+                    for (int i = 0; i < resultArray.length(); i++) {
+                        JSONObject currentObject = resultArray.getJSONObject(i);
+                        MovieData newMovie = new MovieData(currentObject.getInt("vote_average"), currentObject.getInt("id"), currentObject.getString("title"), currentObject.getString("overview"), currentObject.getString("original_title"), currentObject.getString("poster_path"), currentObject.getDouble("popularity"));
+                        mCurrentMovieList.add(newMovie);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Log.v("Fewgwe", mCurrentMovieList.get(0).getOriginalTitle());
+                myImageAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -63,7 +89,7 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
                                   Header[] headers,
                                   String responseString,
                                   Throwable throwable) {
-                Log.d("Failed Response",Integer.toString(statusCode));
+                Log.d("Failed Response", Integer.toString(statusCode));
             }
         });
     }
