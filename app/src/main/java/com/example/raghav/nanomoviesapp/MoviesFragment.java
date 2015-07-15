@@ -80,7 +80,6 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Log.v("Fewgwe", mCurrentMovieList.get(0).getOriginalTitle());
                 myImageAdapter.notifyDataSetChanged();
             }
 
