@@ -54,15 +54,15 @@ public class ImageAdapter extends BaseAdapter {
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-//            imageView.setLayoutParams(new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         } else {
             imageView = (ImageView) convertView;
         }
+        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+//        imageView.setPadding(20,20,20,20);
 
         Picasso.with(mContext)
                 .load(mAdapterData.get(position).getFullImageUrl())
-                .resize(500,500)
+                .resize(500, 500)
                 .centerInside()
                 .into(imageView);
 
