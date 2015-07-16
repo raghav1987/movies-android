@@ -2,9 +2,11 @@ package com.example.raghav.nanomoviesapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,7 +56,12 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
         GridView moviesGridView = (GridView) rootView.findViewById(R.id.gridview_movies);
         myImageAdapter = new ImageAdapter(getActivity(),mCurrentMovieList);
         moviesGridView.setAdapter(myImageAdapter);
-        fetchMovieList("popularity.desc");
+
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortBy = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_default));
+
+        fetchMovieList(sortBy);
         return rootView;
     }
 
@@ -62,6 +69,7 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
         RequestParams params = new RequestParams();
         params.put("api_key", "0afa7d3d93c6b0544e3f2a01fc31c0dd");
         params.put("sort_by", sortParameter);
+        Log.d("SORT",sortParameter);
         MoviesdbRestClient.get("", params, new JsonHttpResponseHandler() {
 
             @Override
