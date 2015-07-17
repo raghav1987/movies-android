@@ -57,11 +57,6 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
         myImageAdapter = new ImageAdapter(getActivity(),mCurrentMovieList);
         moviesGridView.setAdapter(myImageAdapter);
 
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortBy = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_default));
-
-        fetchMovieList(sortBy);
         return rootView;
     }
 
@@ -77,12 +72,18 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
                 Log.v("Success Response", Integer.toString(statusCode));
                 Log.v("Success Response", response.toString());
 
+
                 try {
                     JSONArray resultArray = response.getJSONArray("results");
+                    mCurrentMovieList.clear();
                     for (int i = 0; i < resultArray.length(); i++) {
                         JSONObject currentObject = resultArray.getJSONObject(i);
-                        MovieData newMovie = new MovieData(currentObject.getInt("vote_average"), currentObject.getInt("id"), currentObject.getString("title"), currentObject.getString("overview"), currentObject.getString("original_title"), currentObject.getString("poster_path"), currentObject.getDouble("popularity"));
-                        mCurrentMovieList.add(newMovie);
+                        if (currentObject.isNull("poster_path")) {
+//                            do nothing
+                        } else {
+                            MovieData newMovie = new MovieData(currentObject.getInt("vote_average"), currentObject.getInt("id"), currentObject.getString("title"), currentObject.getString("overview"), currentObject.getString("original_title"), currentObject.getString("poster_path"), currentObject.getDouble("popularity"));
+                            mCurrentMovieList.add(newMovie);
+                        }
                     }
 
                 } catch (JSONException e) {
@@ -94,10 +95,26 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
             @Override
             public void onFailure(int statusCode,
                                   Header[] headers,
-                                  String responseString,
-                                  Throwable throwable) {
+                                  Throwable throwable,
+                                  JSONObject responseJSON) {
                 Log.d("Failed Response", Integer.toString(statusCode));
             }
         });
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortBy = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_default));
+
+        fetchMovieList(sortBy);
+        super.onResume();
+    }
+
+
 }
