@@ -1,9 +1,13 @@
 package com.example.raghav.nanomoviesapp;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by raghav on 7/14/15.
  */
-public class MovieData {
+
+public class MovieData implements Parcelable {
 
     private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
 
@@ -84,4 +88,41 @@ public class MovieData {
     public void setPopularity(float popularity) {
         this.popularity = popularity;
     }
+
+    protected MovieData(Parcel in) {
+        id = in.readInt();
+        title = in.readString();
+        overview = in.readString();
+        originalTitle = in.readString();
+        posterPath = in.readString();
+        popularity = in.readDouble();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(title);
+        dest.writeString(overview);
+        dest.writeString(originalTitle);
+        dest.writeString(posterPath);
+        dest.writeDouble(popularity);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<MovieData> CREATOR = new Parcelable.Creator<MovieData>() {
+        @Override
+        public MovieData createFromParcel(Parcel in) {
+            return new MovieData(in);
+        }
+
+        @Override
+        public MovieData[] newArray(int size) {
+            return new MovieData[size];
+        }
+    };
 }

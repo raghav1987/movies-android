@@ -1,22 +1,14 @@
 package com.example.raghav.nanomoviesapp;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.GridLayout;
 import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -28,23 +20,18 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link MoviesFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link MoviesFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MoviesFragment extends android.support.v4.app.Fragment {
+public class MoviesFragment extends Fragment {
 
     private ArrayList<MovieData> mCurrentMovieList = new ArrayList<>();
-    private ImageAdapter myImageAdapter;
+    private ImageAdapter mImageAdapter;
+    private String sortBy;
+
+
+    public final static String ADAPTER_TAG = "ADAPTER_TAG";
+    public final static String SORT_TAG = "SORT_BY";
 
     public MoviesFragment() {
     }
@@ -54,17 +41,44 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         GridView moviesGridView = (GridView) rootView.findViewById(R.id.gridview_movies);
-        myImageAdapter = new ImageAdapter(getActivity(),mCurrentMovieList);
-        moviesGridView.setAdapter(myImageAdapter);
+
+        String previousStateSortBy;
+        String preferenceSortBy;
+
+        Boolean fetchNewData = false;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
+
+        if (savedInstanceState != null) {
+            mCurrentMovieList = savedInstanceState.getParcelableArrayList(ADAPTER_TAG);
+            previousStateSortBy = savedInstanceState.getString(SORT_TAG);
+
+            if (previousStateSortBy != preferenceSortBy) {
+                fetchNewData = true;
+            }
+
+        } else {
+            fetchNewData = true;
+        }
+
+        sortBy = preferenceSortBy;
+
+        if (fetchNewData) {
+            fetchMovieList(sortBy);
+        }
+
+        mImageAdapter = new ImageAdapter(getActivity(), mCurrentMovieList);
+        moviesGridView.setAdapter(mImageAdapter);
 
         return rootView;
     }
 
     private void fetchMovieList(String sortParameter) {
         RequestParams params = new RequestParams();
-        params.put("api_key", "0afa7d3d93c6b0544e3f2a01fc31c0dd");
+        params.put("api_key", Constants.API_KEY);
         params.put("sort_by", sortParameter);
-        Log.d("SORT",sortParameter);
+        Log.d("SORT", sortParameter);
         MoviesdbRestClient.get("", params, new JsonHttpResponseHandler() {
 
             @Override
@@ -89,7 +103,7 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                myImageAdapter.notifyDataSetChanged();
+                mImageAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -103,18 +117,23 @@ public class MoviesFragment extends android.support.v4.app.Fragment {
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(ADAPTER_TAG, mCurrentMovieList);
+        outState.putString(SORT_TAG,sortBy);
     }
 
     @Override
     public void onResume() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortBy = prefs.getString(getString(R.string.pref_sorting_key),getString(R.string.pref_sorting_default));
-
-        fetchMovieList(sortBy);
         super.onResume();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
+        if (preferenceSortBy!=sortBy) {
+            sortBy = preferenceSortBy;
+            fetchMovieList(sortBy);
+        }
     }
+
 
 
 }
