@@ -10,4 +10,6 @@
     <string name="pref_sorting_default">popularity.desc</string>
     <string name="pref_sorting_popularity">popularity.desc</string>
     <string name="pref_sorting_rating">vote_average.desc</string>
+
+    <string name="title_activity_detail">DetailActivity</string>
 </resources>

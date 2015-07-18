@@ -11,7 +11,7 @@ public class MovieData implements Parcelable {
 
     private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w185/";
 
-    private int voteAverage;
+    private double voteAverage;
     private int id;
     private String title;
     private String overview;
@@ -19,7 +19,17 @@ public class MovieData implements Parcelable {
     private String posterPath;
     private double popularity;
 
-    public MovieData(int voteAverage, int id, String title, String overview, String originalTitle, String posterPath, double popularity) {
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(String releaseDate) {
+        this.releaseDate = releaseDate;
+    }
+
+    private String releaseDate;
+
+    public MovieData(double voteAverage, int id, String title, String overview, String originalTitle, String posterPath, double popularity, String releaseDate) {
         this.voteAverage = voteAverage;
         this.id = id;
         this.title = title;
@@ -27,13 +37,14 @@ public class MovieData implements Parcelable {
         this.originalTitle = originalTitle;
         this.posterPath = posterPath;
         this.popularity = popularity;
+        this.releaseDate = releaseDate;
     }
 
     public String getFullImageUrl() {
         return IMAGE_BASE_URL + this.posterPath;
     }
 
-    public int getVoteAverage() {
+    public double getVoteAverage() {
         return voteAverage;
     }
 
@@ -96,6 +107,8 @@ public class MovieData implements Parcelable {
         originalTitle = in.readString();
         posterPath = in.readString();
         popularity = in.readDouble();
+        releaseDate = in.readString();
+        voteAverage = in.readDouble();
     }
 
     @Override
@@ -111,6 +124,8 @@ public class MovieData implements Parcelable {
         dest.writeString(originalTitle);
         dest.writeString(posterPath);
         dest.writeDouble(popularity);
+        dest.writeString(releaseDate);
+        dest.writeDouble(voteAverage);
     }
 
     @SuppressWarnings("unused")

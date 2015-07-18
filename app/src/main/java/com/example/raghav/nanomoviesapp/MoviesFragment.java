@@ -1,6 +1,7 @@
 package com.example.raghav.nanomoviesapp;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -71,6 +73,16 @@ public class MoviesFragment extends Fragment {
         mImageAdapter = new ImageAdapter(getActivity(), mCurrentMovieList);
         moviesGridView.setAdapter(mImageAdapter);
 
+        moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MovieData clickedMovie = (MovieData)mImageAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(),DetailActivity.class);
+                intent.putExtra(Constants.DETAIL_ACTIVITY_INTENT,clickedMovie);
+                startActivity(intent);
+            }
+        });
+
         return rootView;
     }
 
@@ -78,7 +90,6 @@ public class MoviesFragment extends Fragment {
         RequestParams params = new RequestParams();
         params.put("api_key", Constants.API_KEY);
         params.put("sort_by", sortParameter);
-        Log.d("SORT", sortParameter);
         MoviesdbRestClient.get("", params, new JsonHttpResponseHandler() {
 
             @Override
@@ -95,7 +106,7 @@ public class MoviesFragment extends Fragment {
                         if (currentObject.isNull("poster_path")) {
 //                            do nothing
                         } else {
-                            MovieData newMovie = new MovieData(currentObject.getInt("vote_average"), currentObject.getInt("id"), currentObject.getString("title"), currentObject.getString("overview"), currentObject.getString("original_title"), currentObject.getString("poster_path"), currentObject.getDouble("popularity"));
+                            MovieData newMovie = new MovieData(currentObject.getDouble("vote_average"), currentObject.getInt("id"), currentObject.getString("title"), currentObject.getString("overview"), currentObject.getString("original_title"), currentObject.getString("poster_path"), currentObject.getDouble("popularity"),currentObject.getString("release_date"));
                             mCurrentMovieList.add(newMovie);
                         }
                     }
