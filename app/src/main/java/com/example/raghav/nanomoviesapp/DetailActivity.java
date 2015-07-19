@@ -77,8 +77,8 @@ public class DetailActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
             Intent intent = getActivity().getIntent();
-            if (intent != null && intent.hasExtra(Constants.DETAIL_ACTIVITY_INTENT)) {
-                MovieData mCurrentMovie = intent.getParcelableExtra(Constants.DETAIL_ACTIVITY_INTENT);
+            if (intent != null && intent.hasExtra("CURRENT_MOVIE")) {
+                MovieData mCurrentMovie = intent.getParcelableExtra("CURRENT_MOVIE");
                 ((TextView) rootView.findViewById(R.id.movie_title_bar))
                         .setText(mCurrentMovie.getTitle());
 

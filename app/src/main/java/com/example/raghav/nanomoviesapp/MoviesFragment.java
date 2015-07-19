@@ -78,7 +78,7 @@ public class MoviesFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MovieData clickedMovie = (MovieData)mImageAdapter.getItem(position);
                 Intent intent = new Intent(getActivity(),DetailActivity.class);
-                intent.putExtra(Constants.DETAIL_ACTIVITY_INTENT,clickedMovie);
+                intent.putExtra("CURRENT_MOVIE",clickedMovie);
                 startActivity(intent);
             }
         });
