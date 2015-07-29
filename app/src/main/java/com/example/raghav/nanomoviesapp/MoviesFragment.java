@@ -90,13 +90,12 @@ public class MoviesFragment extends Fragment {
         RequestParams params = new RequestParams();
         params.put("api_key", Constants.API_KEY);
         params.put("sort_by", sortParameter);
-        MoviesdbRestClient.get("", params, new JsonHttpResponseHandler() {
+        MoviesdbRestClient.get("", false, params, new JsonHttpResponseHandler() {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.v("Success Response", Integer.toString(statusCode));
                 Log.v("Success Response", response.toString());
-
 
                 try {
                     JSONArray resultArray = response.getJSONArray("results");
@@ -106,11 +105,18 @@ public class MoviesFragment extends Fragment {
                         if (currentObject.isNull("poster_path")) {
 //                            do nothing
                         } else {
-                            MovieData newMovie = new MovieData(currentObject.getDouble("vote_average"), currentObject.getInt("id"), currentObject.getString("title"), currentObject.getString("overview"), currentObject.getString("original_title"), currentObject.getString("poster_path"), currentObject.getDouble("popularity"),currentObject.getString("release_date"));
+                            MovieData newMovie = new MovieData(
+                                    currentObject.getDouble("vote_average"),
+                                    currentObject.getInt("id"),
+                                    currentObject.getString("title"),
+                                    currentObject.getString("overview"),
+                                    currentObject.getString("original_title"),
+                                    currentObject.getString("poster_path"),
+                                    currentObject.getDouble("popularity"),
+                                    currentObject.getString("release_date"));
                             mCurrentMovieList.add(newMovie);
                         }
                     }
-
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -144,7 +150,5 @@ public class MoviesFragment extends Fragment {
             fetchMovieList(sortBy);
         }
     }
-
-
 
 }

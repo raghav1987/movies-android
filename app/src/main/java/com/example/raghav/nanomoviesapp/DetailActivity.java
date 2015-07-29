@@ -1,23 +1,12 @@
 package com.example.raghav.nanomoviesapp;
 
 import android.content.Intent;
-import android.media.Image;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.squareup.picasso.Picasso;
 
 
 public class DetailActivity extends AppCompatActivity {
@@ -32,9 +21,6 @@ public class DetailActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.my_awesome_toolbar);
         setSupportActionBar(mToolbar);
 
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        getSupportActionBar().setDisplayShowHomeEnabled(true);
-
         mToolbar.setNavigationIcon(getResources().getDrawable(R.drawable.abc_ic_ab_back_mtrl_am_alpha));
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,7 +30,7 @@ public class DetailActivity extends AppCompatActivity {
         });
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
+            getFragmentManager().beginTransaction()
                     .add(R.id.container, new DetailFragment())
                     .commit();
         }
@@ -72,47 +58,5 @@ public class DetailActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class DetailFragment extends Fragment {
-
-        public DetailFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-
-            Intent intent = getActivity().getIntent();
-            if (intent != null && intent.hasExtra("CURRENT_MOVIE")) {
-                MovieData mCurrentMovie = intent.getParcelableExtra("CURRENT_MOVIE");
-                ((TextView) rootView.findViewById(R.id.movie_title_bar))
-                        .setText(mCurrentMovie.getTitle());
-
-                ImageView moviePoster = (ImageView) rootView.findViewById(R.id.detail_poster_image);
-                moviePoster.setScaleType(ImageView.ScaleType.FIT_XY);
-
-                Picasso.with(getActivity())
-                        .load(mCurrentMovie.getFullImageUrl())
-                        .resize(500, 500)
-                        .centerInside()
-                        .into(moviePoster);
-
-                TextView ratingText = (TextView) rootView.findViewById(R.id.rating_text);
-                ratingText.setText("Rating: " + mCurrentMovie.getVoteAverage());
-
-                TextView releaseDateText = (TextView) rootView.findViewById(R.id.release_date_text);
-                releaseDateText.setText("Release Date: " + mCurrentMovie.getReleaseDate());
-
-                TextView synopsisText = (TextView) rootView.findViewById(R.id.synopsis_text);
-                synopsisText.setText(mCurrentMovie.getOverview());
-
-            }
-            return rootView;
-        }
     }
 }

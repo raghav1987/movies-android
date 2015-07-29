@@ -3,6 +3,9 @@ package com.example.raghav.nanomoviesapp;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  * Created by raghav on 7/14/15.
  */
@@ -18,6 +21,18 @@ public class MovieData implements Parcelable {
     private String originalTitle;
     private String posterPath;
     private double popularity;
+    private ArrayList<String> reviews;
+    private HashMap<String, String> trailers;
+
+    public HashMap<String, String> getTrailers() {
+        return trailers;
+    }
+
+    public void setTrailers(HashMap<String, String> trailers) {
+        this.trailers = trailers;
+    }
+
+
 
     public String getReleaseDate() {
         return releaseDate;
@@ -38,6 +53,13 @@ public class MovieData implements Parcelable {
         this.posterPath = posterPath;
         this.popularity = popularity;
         this.releaseDate = releaseDate;
+        this.reviews = new ArrayList<>();
+        this.trailers = new HashMap<>();
+    }
+
+
+    public ArrayList<String> getReviews() {
+        return reviews;
     }
 
     public String getFullImageUrl() {
@@ -109,6 +131,13 @@ public class MovieData implements Parcelable {
         popularity = in.readDouble();
         releaseDate = in.readString();
         voteAverage = in.readDouble();
+        if (in.readByte() == 0x01) {
+            reviews = new ArrayList<String>();
+            in.readList(reviews, String.class.getClassLoader());
+        } else {
+            reviews = null;
+        }
+        trailers = (HashMap) in.readValue(HashMap.class.getClassLoader());
     }
 
     @Override
@@ -126,6 +155,13 @@ public class MovieData implements Parcelable {
         dest.writeDouble(popularity);
         dest.writeString(releaseDate);
         dest.writeDouble(voteAverage);
+        if (reviews == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(reviews);
+        }
+        dest.writeValue(trailers);
     }
 
     @SuppressWarnings("unused")
