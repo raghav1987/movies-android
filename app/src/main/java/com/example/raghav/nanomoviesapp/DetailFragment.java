@@ -3,6 +3,7 @@ package com.example.raghav.nanomoviesapp;
 
 import android.app.ActionBar;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -129,8 +130,7 @@ public class DetailFragment extends Fragment {
         int buttonDimension = (int) getResources().getDimension(R.dimen.trailer_size);
         int imageDimension = (int) getResources().getDimension(R.dimen.play_image_size);
 
-        for(Map.Entry m:trailers.entrySet()){
-            ImageButton btn = new ImageButton(getActivity());
+        for(final Map.Entry movie:trailers.entrySet()){
             LinearLayout trailerLayout = new LinearLayout(getActivity());
             trailerLayout.setLayoutParams(
                     new ViewGroup.LayoutParams(
@@ -140,6 +140,7 @@ public class DetailFragment extends Fragment {
             trailerLayout.setWeightSum(3f);
             mCurrentLayout.addView(trailerLayout);
 
+            ImageButton btn = new ImageButton(getActivity());
             LinearLayout.LayoutParams lpImageButton = new LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f);
             btn.setLayoutParams(lpImageButton);
@@ -149,11 +150,21 @@ public class DetailFragment extends Fragment {
                     .centerInside()
                     .into(btn);
             trailerLayout.addView(btn);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+//                    Uri.parse("vnd.youtube:" + movie.getKey()));
+                    Intent intent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("http://www.youtube.com/watch?v=" + movie.getKey()));
+                    startActivity(intent);
+
+                }
+            });
 
             TextView tv = new TextView(getActivity());
             LinearLayout.LayoutParams lpTextView = new LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.MATCH_PARENT, 2.0f);
-            tv.setText((String)m.getValue());
+            tv.setText((String)movie.getValue());
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             tv.setLayoutParams(lpTextView);
 
