@@ -1,11 +1,14 @@
 package com.example.raghav.nanomoviesapp;
 
 
+import android.animation.ObjectAnimator;
 import android.app.ActionBar;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Layout;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -89,7 +92,7 @@ public class DetailFragment extends Fragment {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.v("Success Response", Integer.toString(statusCode));
                 Log.v("Success Response", response.toString());
-                HashMap<String,String> responseTrailers = new HashMap<String, String>();
+                HashMap<String, String> responseTrailers = new HashMap<String, String>();
                 try {
                     JSONArray reviewArray = response.getJSONObject("reviews").getJSONArray("results");
                     for (int i = 0; i < reviewArray.length(); i++) {
@@ -101,7 +104,8 @@ public class DetailFragment extends Fragment {
                     for (int i = 0; i < videoArray.length(); i++) {
                         JSONObject currentObject = videoArray.getJSONObject(i);
                         Log.v("KEY", currentObject.getString("key"));
-                        responseTrailers.put(currentObject.getString("key"),currentObject.getString("name"));
+                        responseTrailers.put(currentObject.getString("key"),
+                                currentObject.getString("name"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -124,13 +128,15 @@ public class DetailFragment extends Fragment {
 
     }
 
+    //    TODO: definitely need to ask if its better practice to create a listview/recycleview here
+//    TODO: or not
     private void updateRemainingUI() {
-        HashMap<String,String> trailers = mCurrentMovie.getTrailers();
+        HashMap<String, String> trailers = mCurrentMovie.getTrailers();
         ArrayList<String> reviews = mCurrentMovie.getReviews();
         int buttonDimension = (int) getResources().getDimension(R.dimen.trailer_size);
         int imageDimension = (int) getResources().getDimension(R.dimen.play_image_size);
 
-        for(final Map.Entry movie:trailers.entrySet()){
+        for (final Map.Entry movie : trailers.entrySet()) {
             LinearLayout trailerLayout = new LinearLayout(getActivity());
             trailerLayout.setLayoutParams(
                     new ViewGroup.LayoutParams(
@@ -157,19 +163,48 @@ public class DetailFragment extends Fragment {
                     Intent intent = new Intent(Intent.ACTION_VIEW,
                             Uri.parse("http://www.youtube.com/watch?v=" + movie.getKey()));
                     startActivity(intent);
-
                 }
             });
 
             TextView tv = new TextView(getActivity());
             LinearLayout.LayoutParams lpTextView = new LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.MATCH_PARENT, 2.0f);
-            tv.setText((String)movie.getValue());
+            tv.setText((String) movie.getValue());
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             tv.setLayoutParams(lpTextView);
 
             trailerLayout.addView(tv);
+        }
 
+//        TODO: java question - I'm accessing the textview from the inner class - is it better practice to declare the first instance of tv as final and access it within the onClickListener class or is it a better idea to redeclare tv by casting the view in the onClick method?
+
+        for (String review : reviews) {
+            TextView tv = new TextView(getActivity());
+            tv.setText(review);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+
+            tv.setMaxLines(3);
+            tv.setEllipsize(TextUtils.TruncateAt.END);
+
+            mCurrentLayout.addView(tv);
+            tv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView tv = (TextView) v;
+                    Layout layout = tv.getLayout();
+                    int lines = layout.getLineCount();
+                    if (lines > 2) {
+                        int ellipsisCount = layout.getEllipsisCount(2);
+                        if (ellipsisCount > 0) {
+                            tv.setEllipsize(null);
+                            tv.setMaxLines(Integer.MAX_VALUE);
+                        } else {
+                            tv.setMaxLines(3);
+                            tv.setEllipsize(TextUtils.TruncateAt.END);
+                        }
+                    }
+                }
+            });
         }
     }
 }
