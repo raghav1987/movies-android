@@ -136,6 +136,14 @@ public class DetailFragment extends Fragment {
         int buttonDimension = (int) getResources().getDimension(R.dimen.trailer_size);
         int imageDimension = (int) getResources().getDimension(R.dimen.play_image_size);
 
+        TextView trailerHeaderTextView = new TextView(getActivity());
+        LinearLayout.LayoutParams trailerHeaderlp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        trailerHeaderTextView.setText("Trailers");
+        trailerHeaderTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25);
+        trailerHeaderTextView.setLayoutParams(trailerHeaderlp);
+        mCurrentLayout.addView(trailerHeaderTextView);
+
         for (final Map.Entry movie : trailers.entrySet()) {
             LinearLayout trailerLayout = new LinearLayout(getActivity());
             trailerLayout.setLayoutParams(
@@ -176,6 +184,14 @@ public class DetailFragment extends Fragment {
             trailerLayout.addView(tv);
         }
 
+        View divider = new View(getActivity());
+        LinearLayout.LayoutParams dividerLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                (int) getResources().getDimension(R.dimen.divider_height));
+        divider.setLayoutParams(dividerLp);
+        divider.setBackgroundColor(getResources().getColor(R.color.divider));
+        mCurrentLayout.addView(divider);
+
 //        TODO: java question - I'm accessing the textview from the inner class - is it better practice to declare the first instance of tv as final and access it within the onClickListener class or is it a better idea to redeclare tv by casting the view in the onClick method?
 
         for (String review : reviews) {
@@ -206,5 +222,6 @@ public class DetailFragment extends Fragment {
                 }
             });
         }
+
     }
 }
