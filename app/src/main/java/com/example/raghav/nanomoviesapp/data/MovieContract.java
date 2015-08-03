@@ -62,7 +62,7 @@ public class MovieContract {
         public static final String COLUMN_DESCRIPTION="description";
         public static final String COLUMN_FAVORITE_ID="favorite_id";
 
-        public static Uri buildFavoriteMovieUri(long id) {
+        public static Uri buildReviewUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI,id);
         }
     }
@@ -87,7 +87,7 @@ public class MovieContract {
         public static final String COLUMN_DESCRIPTION="description";
         public static final String COLUMN_FAVORITE_ID="favorite_id";
 
-        public static Uri buildFavoriteMovieUri(long id) {
+        public static Uri buildTrailerUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI,id);
         }
     }

@@ -1,7 +1,9 @@
 package com.example.raghav.nanomoviesapp.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
 
 import java.util.Map;
@@ -39,5 +41,35 @@ public class TestUtilities extends AndroidTestCase {
         favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE, "2015-12-12");
 
         return favoriteValues;
+    }
+
+    static ContentValues createReviewValues(long id) {
+        ContentValues favoriteValues = new ContentValues();
+        favoriteValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION, "Some description");
+        favoriteValues.put(MovieContract.ReviewEntry.COLUMN_FAVORITE_ID, id);
+        return favoriteValues;
+    }
+
+    static ContentValues createTrailerValues(long id) {
+        ContentValues favoriteValues = new ContentValues();
+        favoriteValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, "Some description");
+        favoriteValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, 1);
+        favoriteValues.put(MovieContract.TrailerEntry.COLUMN_URI, "some uri");
+        return favoriteValues;
+    }
+
+    static long insertRandomMovieValues(Context context) {
+        // insert our test records into the database
+        MovieDbHelper dbHelper = new MovieDbHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues testValues = TestUtilities.createFavoriteValues();
+
+        long locationRowId;
+        locationRowId = db.insert(MovieContract.FavoriteEntry.TABLE_NAME, null, testValues);
+
+        // Verify we got a row back.
+        assertTrue("Error: Failure to insert Random movie Values", locationRowId != -1);
+
+        return locationRowId;
     }
 }

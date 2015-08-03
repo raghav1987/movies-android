@@ -27,6 +27,9 @@
             android:name=".DetailActivity"
             android:label="@string/title_activity_detail" >
         </activity>
+        <provider
+            android:authorities="com.example.raghav.nanomoviesapp.app"
+            android:name=".data.MovieProvider" />
     </application>
 
 </manifest>
