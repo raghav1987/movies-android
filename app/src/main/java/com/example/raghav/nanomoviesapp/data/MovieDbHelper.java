@@ -50,6 +50,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 // the ID of the location entry associated with this weather data
                 MovieContract.TrailerEntry.COLUMN_FAVORITE_ID + " INTEGER NOT NULL, " +
                 MovieContract.TrailerEntry.COLUMN_DESCRIPTION + " TEXT NOT NULL, " +
+                MovieContract.TrailerEntry.COLUMN_URI + " TEXT NOT NULL, " +
 
                 // Set up the location column as a foreign key to location table.
                 " FOREIGN KEY (" + MovieContract.TrailerEntry.COLUMN_FAVORITE_ID + ") REFERENCES " +

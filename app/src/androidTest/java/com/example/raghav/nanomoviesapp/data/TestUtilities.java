@@ -53,7 +53,7 @@ public class TestUtilities extends AndroidTestCase {
     static ContentValues createTrailerValues(long id) {
         ContentValues favoriteValues = new ContentValues();
         favoriteValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, "Some description");
-        favoriteValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, 1);
+        favoriteValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, id);
         favoriteValues.put(MovieContract.TrailerEntry.COLUMN_URI, "some uri");
         return favoriteValues;
     }
