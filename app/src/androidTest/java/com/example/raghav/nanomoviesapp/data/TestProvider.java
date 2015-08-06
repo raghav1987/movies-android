@@ -153,17 +153,13 @@ public class TestProvider extends AndroidTestCase {
     public void testBasicTrailersQuery() {
         // insert our test records into the database
         long locationRowId = TestUtilities.insertRandomMovieValues(mContext);
-        Log.e("SOME SHIT",String.valueOf(locationRowId));
 
         MovieDbHelper dbHelper = new MovieDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues trailerValues = TestUtilities.createTrailerValues(locationRowId);
 
-        Log.d("SOME SHIT",trailerValues.toString());
-
         long trailerRowId = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, trailerValues);
-        Log.e("SOME SHIT",String.valueOf(trailerRowId));
         assertTrue("Unable to Insert trailerEntry into the Database", trailerRowId != -1);
 
         db.close();
@@ -180,5 +176,41 @@ public class TestProvider extends AndroidTestCase {
         // Make sure we get the correct cursor out of the database
         TestUtilities.validateCursor("testBasicTrailerQuery", trailerCursor, trailerValues);
     }
+
+    public void testBasicReviewsQuery() {
+        // insert our test records into the database
+        long locationRowId = TestUtilities.insertRandomMovieValues(mContext);
+
+        MovieDbHelper dbHelper = new MovieDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues reviewValues = TestUtilities.createReviewValues(locationRowId);
+
+        long reviewRowId = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, reviewValues);
+        assertTrue("Unable to Insert reviewEntry into the Database", reviewRowId != -1);
+
+        db.close();
+
+        // Test the basic content provider query
+        Cursor reviewCursor = mContext.getContentResolver().query(
+                MovieContract.ReviewEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+
+        // Make sure we get the correct cursor out of the database
+        TestUtilities.validateCursor("testBasicReviewQuery", reviewCursor, reviewValues);
+    }
+
+//    public void testDeleteRecords() {
+//        testBasicFavQuery();
+//
+//        // Register a content observer for our favorite delete.
+//        TestUtilities.TestContentObserver favObserver = TestUtilities.getTestContentObserver();
+//        mContext.getContentResolver().registerContentObserver(MovieContract.FavoriteEntry.CONTENT_URI, true, favObserver);
+//
+//    }
 
 }
