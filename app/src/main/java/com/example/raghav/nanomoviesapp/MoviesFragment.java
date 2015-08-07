@@ -1,8 +1,13 @@
 package com.example.raghav.nanomoviesapp;
 
 import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -12,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import com.example.raghav.nanomoviesapp.data.MovieContract;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
@@ -31,7 +37,6 @@ public class MoviesFragment extends Fragment {
     private ImageAdapter mImageAdapter;
     private String sortBy;
 
-
     public final static String ADAPTER_TAG = "ADAPTER_TAG";
     public final static String SORT_TAG = "SORT_BY";
 
@@ -47,7 +52,8 @@ public class MoviesFragment extends Fragment {
         String previousStateSortBy;
         String preferenceSortBy;
 
-        Boolean fetchNewData = false;
+        Boolean fetchDataAPI = false;
+        Boolean fetchDataFavs = false;
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
@@ -56,34 +62,79 @@ public class MoviesFragment extends Fragment {
             mCurrentMovieList = savedInstanceState.getParcelableArrayList(ADAPTER_TAG);
             previousStateSortBy = savedInstanceState.getString(SORT_TAG);
 
-            if (previousStateSortBy != preferenceSortBy) {
-                fetchNewData = true;
+            if (!previousStateSortBy.equals(preferenceSortBy)) {
+                if (preferenceSortBy.equals(getString(R.string.pref_sorting_favorites))) {
+                    fetchDataFavs = true;
+                } else {
+                    fetchDataAPI = true;
+                }
             }
 
         } else {
-            fetchNewData = true;
+            if (preferenceSortBy.equals(getString(R.string.pref_sorting_favorites))) {
+                fetchDataFavs = true;
+            } else {
+                fetchDataAPI = true;
+            }
         }
 
         sortBy = preferenceSortBy;
-
-        if (fetchNewData) {
-            fetchMovieList(sortBy);
-        }
-
         mImageAdapter = new ImageAdapter(getActivity(), mCurrentMovieList);
+        if (fetchDataAPI) {
+            fetchMovieList(sortBy);
+        } else if (fetchDataFavs) {
+            fetchFavList();
+        }
         moviesGridView.setAdapter(mImageAdapter);
-
         moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MovieData clickedMovie = (MovieData)mImageAdapter.getItem(position);
-                Intent intent = new Intent(getActivity(),DetailActivity.class);
-                intent.putExtra("CURRENT_MOVIE",clickedMovie);
+                MovieData clickedMovie = (MovieData) mImageAdapter.getItem(position);
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                intent.putExtra("CURRENT_MOVIE", clickedMovie);
                 startActivity(intent);
             }
         });
 
         return rootView;
+    }
+
+    private void fetchFavList() {
+        mCurrentMovieList.clear();
+        Cursor favCursor = getActivity().getContentResolver().query(
+                MovieContract.FavoriteEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+
+        int i = 0;
+        if (favCursor.moveToFirst()) {
+
+            do{
+                String movieName = favCursor.getString(
+                        favCursor.getColumnIndex(
+                                MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME));
+                Double rating = favCursor.getDouble(
+                        favCursor.getColumnIndex(
+                                MovieContract.FavoriteEntry.COLUMN_RATING));
+                String releaseDate = favCursor.getString(
+                        favCursor.getColumnIndex(
+                                MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE));
+                String description = favCursor.getString(
+                        favCursor.getColumnIndex(
+                                MovieContract.FavoriteEntry.COLUMN_DESCRIPTION));
+                String uri = favCursor.getString(
+                        favCursor.getColumnIndex(
+                                MovieContract.FavoriteEntry.COLUMN_IMAGE_URI));
+                MovieData movie = new MovieData(rating,i,movieName,description,movieName,uri,rating,releaseDate);
+                i++;
+                mCurrentMovieList.add(movie);
+            }while(favCursor.moveToNext());
+            favCursor.close();
+        }
+        mImageAdapter.notifyDataSetChanged();
     }
 
     private void fetchMovieList(String sortParameter) {
@@ -137,7 +188,7 @@ public class MoviesFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(ADAPTER_TAG, mCurrentMovieList);
-        outState.putString(SORT_TAG,sortBy);
+        outState.putString(SORT_TAG, sortBy);
     }
 
     @Override
@@ -145,10 +196,14 @@ public class MoviesFragment extends Fragment {
         super.onResume();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
-        if (preferenceSortBy!=sortBy) {
-            sortBy = preferenceSortBy;
-            fetchMovieList(sortBy);
+
+        if (!preferenceSortBy.equals(sortBy)) {
+            if (preferenceSortBy.equals(getString(R.string.pref_sorting_favorites))) {
+                fetchFavList();
+            } else {
+                sortBy = preferenceSortBy;
+                fetchMovieList(sortBy);
+            }
         }
     }
-
 }

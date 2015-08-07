@@ -41,6 +41,12 @@ public class MovieContract {
         public static Uri buildFavoriteMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI,id);
         }
+
+        public static Uri buildFavoriteMovieWithMovieName(String movieName) {
+            return CONTENT_URI.buildUpon()
+                    .appendQueryParameter(COLUMN_MOVIE_NAME,movieName)
+                    .build();
+        }
     }
 
     public static final class ReviewEntry implements BaseColumns {

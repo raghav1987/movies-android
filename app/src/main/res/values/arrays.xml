@@ -3,9 +3,11 @@
     <string-array name="entries_sorting_preference">
         <item>@string/pref_sorting_label_popularity</item>
         <item>@string/pref_sorting_label_rating</item>
+        <item>@string/pref_sorting_label_favorites</item>
     </string-array>
     <string-array name="entryvalues_sorting_preference">
         <item>@string/pref_sorting_popularity</item>
         <item>@string/pref_sorting_rating</item>
+        <item>@string/pref_sorting_favorites</item>
     </string-array>
 </resources>
