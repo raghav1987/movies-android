@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class ImageAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ImageView imageView;
+        final ImageView imageView;
         if (convertView == null) {
             // if it's not recycled, initialize some attributes
             imageView = new ImageView(mContext);
@@ -62,6 +63,8 @@ public class ImageAdapter extends BaseAdapter {
 
         Picasso.with(mContext)
                 .load(mAdapterData.get(position).getFullImageUrl())
+                .placeholder(R.drawable.play_button)
+                .error(R.drawable.play_button)
                 .resize(500, 500)
                 .centerInside()
                 .into(imageView);

@@ -7,10 +7,12 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.preference.PreferenceManager;
 import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
@@ -47,8 +49,6 @@ public class DetailFragment extends Fragment {
 
     private MovieData mCurrentMovie;
     private Context mContext;
-    ArrayList<String> mTrailerButtons = new ArrayList<>();
-    ArrayList<TextView> mReviewTextViews = new ArrayList<>();
 
     LinearLayout mCurrentLayout;
 
@@ -99,9 +99,6 @@ public class DetailFragment extends Fragment {
                             null
                     );
 
-                    Toast toaster = Toast.makeText(mContext, "Here baby!!", Toast.LENGTH_SHORT);
-                    toaster.show();
-
                     if (favCursor.moveToFirst()) {
                         Toast toast = Toast.makeText(mContext, "Already exists in favs!", Toast.LENGTH_SHORT);
                         toast.show();
@@ -129,7 +126,7 @@ public class DetailFragment extends Fragment {
 
                         favoriteId = ContentUris.parseId(insertedUri);
 
-                        for (int i=0; i<mCurrentMovie.getReviews().size(); i++) {
+                        for (int i = 0; i < mCurrentMovie.getReviews().size(); i++) {
                             ContentValues reviewValues = new ContentValues();
                             reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION,
                                     mCurrentMovie.getReviews().get(i));
@@ -144,9 +141,9 @@ public class DetailFragment extends Fragment {
                         for (final Map.Entry trailer : mCurrentMovie.getTrailers().entrySet()) {
                             ContentValues trailerValues = new ContentValues();
                             trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION,
-                                    (String)trailer.getValue());
+                                    (String) trailer.getValue());
                             trailerValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, favoriteId);
-                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_URI, (String)trailer.getKey());
+                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_URI, (String) trailer.getKey());
                             Uri insertedTrailer = mContext.getContentResolver().insert(
                                     MovieContract.TrailerEntry.CONTENT_URI,
                                     trailerValues
@@ -158,7 +155,45 @@ public class DetailFragment extends Fragment {
                     favCursor.close();
                 }
             });
-            fetchMovieDetails();
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
+
+            if (preferenceSortBy.equals(getString(R.string.pref_sorting_favorites))) {
+//                get details from the database
+                Cursor favCursor = mContext.getContentResolver().query(
+                        MovieContract.FavoriteEntry.CONTENT_URI,
+                        null,
+                        MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME + " = ? ",
+                        new String[]{mCurrentMovie.getTitle()},
+                        null
+                );
+
+                long favMovieId = -1;
+
+                if (favCursor.moveToFirst()) {
+                    favMovieId = favCursor.getLong(favCursor.getColumnIndex("_id"));
+                }
+                favCursor.close();
+
+                Cursor reviewsCursor = mContext.getContentResolver().query(
+                        MovieContract.ReviewEntry.CONTENT_URI,
+                        null,
+                        MovieContract.ReviewEntry.COLUMN_FAVORITE_ID + " = ? ",
+                        new String[]{String.valueOf(favMovieId)},
+                        null
+                );
+                if (reviewsCursor.moveToFirst()) {
+                    do {
+                        mCurrentMovie.getReviews().add(reviewsCursor.getString(reviewsCursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_DESCRIPTION)));
+                    } while (reviewsCursor.moveToNext());
+                    reviewsCursor.close();
+                }
+                updateRemainingUI();
+            } else {
+                fetchMovieDetails();
+            }
+
         }
         return rootView;
     }
