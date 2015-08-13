@@ -112,11 +112,16 @@ public class DetailFragment extends Fragment {
                         long favoriteId;
 
                         ContentValues favoriteValues = new ContentValues();
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_DESCRIPTION, mCurrentMovie.getOverview());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_IMAGE_URI, mCurrentMovie.getFullImageUrl());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME, mCurrentMovie.getOriginalTitle());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RATING, mCurrentMovie.getVoteAverage());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE, mCurrentMovie.getReleaseDate());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_DESCRIPTION,
+                                mCurrentMovie.getOverview());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_IMAGE_URI,
+                                mCurrentMovie.getFullImageUrl());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME,
+                                mCurrentMovie.getOriginalTitle());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RATING,
+                                mCurrentMovie.getVoteAverage());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE,
+                                mCurrentMovie.getReleaseDate());
 
                         Uri insertedUri = mContext.getContentResolver().insert(
                                 MovieContract.FavoriteEntry.CONTENT_URI,
@@ -138,7 +143,8 @@ public class DetailFragment extends Fragment {
 
                         for (final Map.Entry trailer : mCurrentMovie.getTrailers().entrySet()) {
                             ContentValues trailerValues = new ContentValues();
-                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION, (String)trailer.getValue());
+                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION,
+                                    (String)trailer.getValue());
                             trailerValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, favoriteId);
                             trailerValues.put(MovieContract.TrailerEntry.COLUMN_URI, (String)trailer.getKey());
                             Uri insertedTrailer = mContext.getContentResolver().insert(
