@@ -1,13 +1,9 @@
 package com.example.raghav.nanomoviesapp;
 
 import android.app.Fragment;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -27,7 +23,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-
+//
 /**
  * A placeholder fragment containing a simple view.
  */

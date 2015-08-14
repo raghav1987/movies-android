@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +52,10 @@ public class DetailFragment extends Fragment {
     private Context mContext;
 
     LinearLayout mCurrentLayout;
+    private int mSavedPosition = -1;
+
+    public final static String MOVIE_TAG = "MOVIE_TAG";
+    public final static String SCROLL_TAG = "SCROLL_TAG";
 
     public DetailFragment() {
     }
@@ -58,109 +63,60 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
         mCurrentLayout = (LinearLayout) rootView.findViewById(R.id.main_layout);
 
+        if (savedInstanceState != null) {
+            mCurrentMovie = savedInstanceState.getParcelable(MOVIE_TAG);
+            mSavedPosition = savedInstanceState.getInt(SCROLL_TAG);
+        }
+
         Intent intent = getActivity().getIntent();
+        mContext = getActivity();
         if (intent != null && intent.hasExtra("CURRENT_MOVIE")) {
-            mContext = getActivity();
             mCurrentMovie = intent.getParcelableExtra("CURRENT_MOVIE");
-            ((TextView) rootView.findViewById(R.id.movie_title_bar))
-                    .setText(mCurrentMovie.getTitle());
+        }
 
-            ImageView moviePoster = (ImageView) rootView.findViewById(R.id.detail_poster_image);
-            moviePoster.setScaleType(ImageView.ScaleType.FIT_XY);
+        ((TextView) rootView.findViewById(R.id.movie_title_bar))
+                .setText(mCurrentMovie.getTitle());
 
-            Picasso.with(mContext)
-                    .load(mCurrentMovie.getFullImageUrl())
-                    .into(moviePoster);
+        ImageView moviePoster = (ImageView) rootView.findViewById(R.id.detail_poster_image);
+        moviePoster.setScaleType(ImageView.ScaleType.FIT_XY);
 
-            TextView ratingText = (TextView) rootView.findViewById(R.id.rating_text);
-            ratingText.setText("Rating: " + mCurrentMovie.getVoteAverage());
+        Picasso.with(mContext)
+                .load(mCurrentMovie.getFullImageUrl())
+                .into(moviePoster);
 
-            TextView releaseDateText = (TextView) rootView.findViewById(R.id.release_date_text);
-            releaseDateText.setText("Release Date: " + mCurrentMovie.getReleaseDate());
+        TextView ratingText = (TextView) rootView.findViewById(R.id.rating_text);
+        ratingText.setText("Rating: " + mCurrentMovie.getVoteAverage());
 
-            TextView synopsisText = (TextView) rootView.findViewById(R.id.synopsis_text);
-            synopsisText.setText(mCurrentMovie.getOverview());
+        TextView releaseDateText = (TextView) rootView.findViewById(R.id.release_date_text);
+        releaseDateText.setText("Release Date: " + mCurrentMovie.getReleaseDate());
 
-            Button markFavButton = (Button) rootView.findViewById(R.id.fav_button);
-            markFavButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-//                    first check to see if it already exists in the database,
-//                    if yes, display toast saying "hey already saved as a fav"
-                    Cursor favCursor = mContext.getContentResolver().query(
-                            MovieContract.FavoriteEntry.CONTENT_URI,
-                            null,
-                            MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME + " = ? ",
-                            new String[]{mCurrentMovie.getTitle()},
-                            null
-                    );
+        TextView synopsisText = (TextView) rootView.findViewById(R.id.synopsis_text);
+        synopsisText.setText(mCurrentMovie.getOverview());
 
-                    if (favCursor.moveToFirst()) {
-                        Toast toast = Toast.makeText(mContext, "Already exists in favs!", Toast.LENGTH_SHORT);
-                        toast.show();
-                    }
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
 
-//                  else add to database, and display toast saying "Saved as a fav!"
-                    else {
-                        long favoriteId;
-
-                        ContentValues favoriteValues = new ContentValues();
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_DESCRIPTION,
-                                mCurrentMovie.getOverview());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_IMAGE_URI,
-                                mCurrentMovie.getFullImageUrl());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME,
-                                mCurrentMovie.getOriginalTitle());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RATING,
-                                mCurrentMovie.getVoteAverage());
-                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE,
-                                mCurrentMovie.getReleaseDate());
-
-                        Uri insertedUri = mContext.getContentResolver().insert(
-                                MovieContract.FavoriteEntry.CONTENT_URI,
-                                favoriteValues);
-
-                        favoriteId = ContentUris.parseId(insertedUri);
-
-                        for (int i = 0; i < mCurrentMovie.getReviews().size(); i++) {
-                            ContentValues reviewValues = new ContentValues();
-                            reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION,
-                                    mCurrentMovie.getReviews().get(i));
-                            reviewValues.put(MovieContract.ReviewEntry.COLUMN_FAVORITE_ID, favoriteId);
-
-                            Uri insertedReview = mContext.getContentResolver().insert(
-                                    MovieContract.ReviewEntry.CONTENT_URI,
-                                    reviewValues
-                            );
-                        }
-
-                        for (final Map.Entry trailer : mCurrentMovie.getTrailers().entrySet()) {
-                            ContentValues trailerValues = new ContentValues();
-                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION,
-                                    (String) trailer.getValue());
-                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, favoriteId);
-                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_URI, (String) trailer.getKey());
-                            Uri insertedTrailer = mContext.getContentResolver().insert(
-                                    MovieContract.TrailerEntry.CONTENT_URI,
-                                    trailerValues
-                            );
-                        }
-                        Toast toast = Toast.makeText(mContext, "Added to favs!", Toast.LENGTH_SHORT);
-                        toast.show();
-                    }
-                    favCursor.close();
-                }
-            });
-
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
-
+        if (savedInstanceState==null) {
             if (preferenceSortBy.equals(getString(R.string.pref_sorting_favorites))) {
 //                get details from the database
+                fetchMovieDetailsFromDB();
+            } else {
+                fetchMovieDetails();
+            }
+        } else {
+            updateRemainingUI();
+        }
+
+        Button markFavButton = (Button) rootView.findViewById(R.id.fav_button);
+        markFavButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                    first check to see if it already exists in the database,
+//                    if yes, display toast saying "hey already saved as a fav"
                 Cursor favCursor = mContext.getContentResolver().query(
                         MovieContract.FavoriteEntry.CONTENT_URI,
                         null,
@@ -169,50 +125,125 @@ public class DetailFragment extends Fragment {
                         null
                 );
 
-                long favMovieId = -1;
-
                 if (favCursor.moveToFirst()) {
-                    favMovieId = favCursor.getLong(favCursor.getColumnIndex("_id"));
+                    Toast toast = Toast.makeText(mContext, "Already exists in favs!", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+
+//                  else add to database, and display toast saying "Saved as a fav!"
+                else {
+                    long favoriteId;
+
+                    ContentValues favoriteValues = new ContentValues();
+                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_DESCRIPTION,
+                            mCurrentMovie.getOverview());
+                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_IMAGE_URI,
+                            mCurrentMovie.getFullImageUrl());
+                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME,
+                            mCurrentMovie.getOriginalTitle());
+                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RATING,
+                            mCurrentMovie.getVoteAverage());
+                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE,
+                            mCurrentMovie.getReleaseDate());
+
+                    Uri insertedUri = mContext.getContentResolver().insert(
+                            MovieContract.FavoriteEntry.CONTENT_URI,
+                            favoriteValues);
+
+                    favoriteId = ContentUris.parseId(insertedUri);
+
+                    for (int i = 0; i < mCurrentMovie.getReviews().size(); i++) {
+                        ContentValues reviewValues = new ContentValues();
+                        reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION,
+                                mCurrentMovie.getReviews().get(i));
+                        reviewValues.put(MovieContract.ReviewEntry.COLUMN_FAVORITE_ID, favoriteId);
+
+                        Uri insertedReview = mContext.getContentResolver().insert(
+                                MovieContract.ReviewEntry.CONTENT_URI,
+                                reviewValues
+                        );
+                    }
+
+                    for (final Map.Entry trailer : mCurrentMovie.getTrailers().entrySet()) {
+                        ContentValues trailerValues = new ContentValues();
+                        trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION,
+                                (String) trailer.getValue());
+                        trailerValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, favoriteId);
+                        trailerValues.put(MovieContract.TrailerEntry.COLUMN_URI, (String) trailer.getKey());
+                        Uri insertedTrailer = mContext.getContentResolver().insert(
+                                MovieContract.TrailerEntry.CONTENT_URI,
+                                trailerValues
+                        );
+                    }
+                    Toast toast = Toast.makeText(mContext, "Added to favs!", Toast.LENGTH_SHORT);
+                    toast.show();
                 }
                 favCursor.close();
-
-                Cursor reviewsCursor = mContext.getContentResolver().query(
-                        MovieContract.ReviewEntry.CONTENT_URI,
-                        null,
-                        MovieContract.ReviewEntry.COLUMN_FAVORITE_ID + " = ? ",
-                        new String[]{String.valueOf(favMovieId)},
-                        null
-                );
-                if (reviewsCursor.moveToFirst()) {
-                    do {
-                        mCurrentMovie.getReviews().add(reviewsCursor.getString(reviewsCursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_DESCRIPTION)));
-                    } while (reviewsCursor.moveToNext());
-
-                }
-                reviewsCursor.close();
-
-                Cursor trailersCursor = mContext.getContentResolver().query(
-                        MovieContract.TrailerEntry.CONTENT_URI,
-                        null,
-                        MovieContract.TrailerEntry.COLUMN_FAVORITE_ID + " = ? ",
-                        new String[]{String.valueOf(favMovieId)},
-                        null
-                );
-                if (trailersCursor.moveToFirst()) {
-                    HashMap<String, String> favTrailers = new HashMap<String, String>();
-                    do {
-                        favTrailers.put(trailersCursor.getString(trailersCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_URI)),trailersCursor.getString(trailersCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_DESCRIPTION)));
-                    } while (trailersCursor.moveToNext());
-
-                    mCurrentMovie.setTrailers(favTrailers);
-                }
-                trailersCursor.close();
-                updateRemainingUI();
-            } else {
-                fetchMovieDetails();
             }
+        });
+
+
+        if (mSavedPosition != -1) {
+            rootView.post(new Runnable() {
+                @Override
+                public void run() {
+                    rootView.scrollTo(0,mSavedPosition);
+                }
+            });
         }
+
         return rootView;
+    }
+
+    private void fetchMovieDetailsFromDB() {
+        Cursor favCursor = mContext.getContentResolver().query(
+                MovieContract.FavoriteEntry.CONTENT_URI,
+                null,
+                MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME + " = ? ",
+                new String[]{mCurrentMovie.getTitle()},
+                null
+        );
+
+        long favMovieId = -1;
+
+        if (favCursor.moveToFirst()) {
+            favMovieId = favCursor.getLong(favCursor.getColumnIndex("_id"));
+        }
+        favCursor.close();
+
+        Cursor reviewsCursor = mContext.getContentResolver().query(
+                MovieContract.ReviewEntry.CONTENT_URI,
+                null,
+                MovieContract.ReviewEntry.COLUMN_FAVORITE_ID + " = ? ",
+                new String[]{String.valueOf(favMovieId)},
+                null
+        );
+        if (reviewsCursor.moveToFirst()) {
+            do {
+                mCurrentMovie.getReviews().add(reviewsCursor.getString(reviewsCursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_DESCRIPTION)));
+            } while (reviewsCursor.moveToNext());
+
+        }
+        reviewsCursor.close();
+
+        Cursor trailersCursor = mContext.getContentResolver().query(
+                MovieContract.TrailerEntry.CONTENT_URI,
+                null,
+                MovieContract.TrailerEntry.COLUMN_FAVORITE_ID + " = ? ",
+                new String[]{String.valueOf(favMovieId)},
+                null
+        );
+        if (trailersCursor.moveToFirst()) {
+            HashMap<String, String> favTrailers = new HashMap<String, String>();
+            do {
+                favTrailers.put(trailersCursor.getString(trailersCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_URI)), trailersCursor.getString(trailersCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_DESCRIPTION)));
+            } while (trailersCursor.moveToNext());
+
+            mCurrentMovie.setTrailers(favTrailers);
+        }
+        trailersCursor.close();
+        updateRemainingUI();
+
     }
 
     private void fetchMovieDetails() {
@@ -335,6 +366,7 @@ public class DetailFragment extends Fragment {
             tv.setMaxLines(3);
             tv.setEllipsize(TextUtils.TruncateAt.END);
 
+//          TODO: currently, upon rotation, i'm not storing the state of the reviews, i.e. are they expanded or not. The way to do that would probably be by instead of storing reviews as strings, but review objects with the property of the textView (in this case, the max lines of the ellipses) as a property of each review and then setting the ellipses irrespective of state
             mCurrentLayout.addView(tv);
             tv.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -356,5 +388,13 @@ public class DetailFragment extends Fragment {
             });
         }
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(MOVIE_TAG, mCurrentMovie);
+        ScrollView thisView = (ScrollView)mCurrentLayout.getParent();
+        outState.putInt(SCROLL_TAG,thisView.getScrollY());
     }
 }
