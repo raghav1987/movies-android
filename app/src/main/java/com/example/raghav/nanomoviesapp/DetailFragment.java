@@ -187,13 +187,30 @@ public class DetailFragment extends Fragment {
                     do {
                         mCurrentMovie.getReviews().add(reviewsCursor.getString(reviewsCursor.getColumnIndex(MovieContract.ReviewEntry.COLUMN_DESCRIPTION)));
                     } while (reviewsCursor.moveToNext());
-                    reviewsCursor.close();
+
                 }
+                reviewsCursor.close();
+
+                Cursor trailersCursor = mContext.getContentResolver().query(
+                        MovieContract.TrailerEntry.CONTENT_URI,
+                        null,
+                        MovieContract.TrailerEntry.COLUMN_FAVORITE_ID + " = ? ",
+                        new String[]{String.valueOf(favMovieId)},
+                        null
+                );
+                if (trailersCursor.moveToFirst()) {
+                    HashMap<String, String> favTrailers = new HashMap<String, String>();
+                    do {
+                        favTrailers.put(trailersCursor.getString(trailersCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_URI)),trailersCursor.getString(trailersCursor.getColumnIndex(MovieContract.TrailerEntry.COLUMN_DESCRIPTION)));
+                    } while (trailersCursor.moveToNext());
+
+                    mCurrentMovie.setTrailers(favTrailers);
+                }
+                trailersCursor.close();
                 updateRemainingUI();
             } else {
                 fetchMovieDetails();
             }
-
         }
         return rootView;
     }
