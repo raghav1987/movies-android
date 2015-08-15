@@ -1,8 +1,7 @@
 package com.example.raghav.nanomoviesapp;
 
 
-import android.animation.ObjectAnimator;
-import android.app.ActionBar;
+import android.app.Fragment;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,7 +10,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.preference.PreferenceManager;
 import android.text.Layout;
 import android.text.TextUtils;
@@ -72,125 +70,126 @@ public class DetailFragment extends Fragment {
             mSavedPosition = savedInstanceState.getInt(SCROLL_TAG);
         }
 
-        Intent intent = getActivity().getIntent();
         mContext = getActivity();
-        if (intent != null && intent.hasExtra("CURRENT_MOVIE")) {
-            mCurrentMovie = intent.getParcelableExtra("CURRENT_MOVIE");
-        }
+        if (getArguments() != null) {
+            mCurrentMovie = getArguments().getParcelable("CURRENT_MOVIE");
+            ((TextView) rootView.findViewById(R.id.movie_title_bar))
+                    .setText(mCurrentMovie.getTitle());
 
-        ((TextView) rootView.findViewById(R.id.movie_title_bar))
-                .setText(mCurrentMovie.getTitle());
+            ImageView moviePoster = (ImageView) rootView.findViewById(R.id.detail_poster_image);
+            moviePoster.setScaleType(ImageView.ScaleType.FIT_XY);
 
-        ImageView moviePoster = (ImageView) rootView.findViewById(R.id.detail_poster_image);
-        moviePoster.setScaleType(ImageView.ScaleType.FIT_XY);
+            Picasso.with(mContext)
+                    .load(mCurrentMovie.getFullImageUrl())
+                    .into(moviePoster);
 
-        Picasso.with(mContext)
-                .load(mCurrentMovie.getFullImageUrl())
-                .into(moviePoster);
+            TextView ratingText = (TextView) rootView.findViewById(R.id.rating_text);
+            ratingText.setText("Rating: " + mCurrentMovie.getVoteAverage());
 
-        TextView ratingText = (TextView) rootView.findViewById(R.id.rating_text);
-        ratingText.setText("Rating: " + mCurrentMovie.getVoteAverage());
+            TextView releaseDateText = (TextView) rootView.findViewById(R.id.release_date_text);
+            releaseDateText.setText("Release Date: " + mCurrentMovie.getReleaseDate());
 
-        TextView releaseDateText = (TextView) rootView.findViewById(R.id.release_date_text);
-        releaseDateText.setText("Release Date: " + mCurrentMovie.getReleaseDate());
+            TextView synopsisText = (TextView) rootView.findViewById(R.id.synopsis_text);
+            synopsisText.setText(mCurrentMovie.getOverview());
 
-        TextView synopsisText = (TextView) rootView.findViewById(R.id.synopsis_text);
-        synopsisText.setText(mCurrentMovie.getOverview());
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String preferenceSortBy = prefs.getString(getString(R.string.pref_sorting_key), getString(R.string.pref_sorting_default));
-
-        if (savedInstanceState==null) {
-            if (preferenceSortBy.equals(getString(R.string.pref_sorting_favorites))) {
+            if (savedInstanceState == null) {
+                if (preferenceSortBy.equals(getString(R.string.pref_sorting_favorites))) {
 //                get details from the database
-                fetchMovieDetailsFromDB();
+                    fetchMovieDetailsFromDB();
+                } else {
+                    fetchMovieDetails();
+                }
             } else {
-                fetchMovieDetails();
+                updateRemainingUI();
             }
-        } else {
-            updateRemainingUI();
-        }
 
-        Button markFavButton = (Button) rootView.findViewById(R.id.fav_button);
-        markFavButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            Button markFavButton = (Button) rootView.findViewById(R.id.fav_button);
+            markFavButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 //                    first check to see if it already exists in the database,
 //                    if yes, display toast saying "hey already saved as a fav"
-                Cursor favCursor = mContext.getContentResolver().query(
-                        MovieContract.FavoriteEntry.CONTENT_URI,
-                        null,
-                        MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME + " = ? ",
-                        new String[]{mCurrentMovie.getTitle()},
-                        null
-                );
+                    Cursor favCursor = mContext.getContentResolver().query(
+                            MovieContract.FavoriteEntry.CONTENT_URI,
+                            null,
+                            MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME + " = ? ",
+                            new String[]{mCurrentMovie.getTitle()},
+                            null
+                    );
 
-                if (favCursor.moveToFirst()) {
-                    Toast toast = Toast.makeText(mContext, "Already exists in favs!", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
+                    if (favCursor.moveToFirst()) {
+                        Toast toast = Toast.makeText(mContext, "Already exists in favs!", Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
 
 //                  else add to database, and display toast saying "Saved as a fav!"
-                else {
-                    long favoriteId;
+                    else {
+                        long favoriteId;
 
-                    ContentValues favoriteValues = new ContentValues();
-                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_DESCRIPTION,
-                            mCurrentMovie.getOverview());
-                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_IMAGE_URI,
-                            mCurrentMovie.getFullImageUrl());
-                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME,
-                            mCurrentMovie.getOriginalTitle());
-                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RATING,
-                            mCurrentMovie.getVoteAverage());
-                    favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE,
-                            mCurrentMovie.getReleaseDate());
+                        ContentValues favoriteValues = new ContentValues();
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_DESCRIPTION,
+                                mCurrentMovie.getOverview());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_IMAGE_URI,
+                                mCurrentMovie.getFullImageUrl());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_MOVIE_NAME,
+                                mCurrentMovie.getOriginalTitle());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RATING,
+                                mCurrentMovie.getVoteAverage());
+                        favoriteValues.put(MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE,
+                                mCurrentMovie.getReleaseDate());
 
-                    Uri insertedUri = mContext.getContentResolver().insert(
-                            MovieContract.FavoriteEntry.CONTENT_URI,
-                            favoriteValues);
+                        Uri insertedUri = mContext.getContentResolver().insert(
+                                MovieContract.FavoriteEntry.CONTENT_URI,
+                                favoriteValues);
 
-                    favoriteId = ContentUris.parseId(insertedUri);
+                        favoriteId = ContentUris.parseId(insertedUri);
 
-                    for (int i = 0; i < mCurrentMovie.getReviews().size(); i++) {
-                        ContentValues reviewValues = new ContentValues();
-                        reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION,
-                                mCurrentMovie.getReviews().get(i));
-                        reviewValues.put(MovieContract.ReviewEntry.COLUMN_FAVORITE_ID, favoriteId);
+                        for (int i = 0; i < mCurrentMovie.getReviews().size(); i++) {
+                            ContentValues reviewValues = new ContentValues();
+                            reviewValues.put(MovieContract.ReviewEntry.COLUMN_DESCRIPTION,
+                                    mCurrentMovie.getReviews().get(i));
+                            reviewValues.put(MovieContract.ReviewEntry.COLUMN_FAVORITE_ID, favoriteId);
 
-                        Uri insertedReview = mContext.getContentResolver().insert(
-                                MovieContract.ReviewEntry.CONTENT_URI,
-                                reviewValues
-                        );
+                            Uri insertedReview = mContext.getContentResolver().insert(
+                                    MovieContract.ReviewEntry.CONTENT_URI,
+                                    reviewValues
+                            );
+                        }
+
+                        for (final Map.Entry trailer : mCurrentMovie.getTrailers().entrySet()) {
+                            ContentValues trailerValues = new ContentValues();
+                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION,
+                                    (String) trailer.getValue());
+                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, favoriteId);
+                            trailerValues.put(MovieContract.TrailerEntry.COLUMN_URI, (String) trailer.getKey());
+                            Uri insertedTrailer = mContext.getContentResolver().insert(
+                                    MovieContract.TrailerEntry.CONTENT_URI,
+                                    trailerValues
+                            );
+                        }
+                        Toast toast = Toast.makeText(mContext, "Added to favs!", Toast.LENGTH_SHORT);
+                        toast.show();
                     }
-
-                    for (final Map.Entry trailer : mCurrentMovie.getTrailers().entrySet()) {
-                        ContentValues trailerValues = new ContentValues();
-                        trailerValues.put(MovieContract.TrailerEntry.COLUMN_DESCRIPTION,
-                                (String) trailer.getValue());
-                        trailerValues.put(MovieContract.TrailerEntry.COLUMN_FAVORITE_ID, favoriteId);
-                        trailerValues.put(MovieContract.TrailerEntry.COLUMN_URI, (String) trailer.getKey());
-                        Uri insertedTrailer = mContext.getContentResolver().insert(
-                                MovieContract.TrailerEntry.CONTENT_URI,
-                                trailerValues
-                        );
-                    }
-                    Toast toast = Toast.makeText(mContext, "Added to favs!", Toast.LENGTH_SHORT);
-                    toast.show();
-                }
-                favCursor.close();
-            }
-        });
-
-
-        if (mSavedPosition != -1) {
-            rootView.post(new Runnable() {
-                @Override
-                public void run() {
-                    rootView.scrollTo(0,mSavedPosition);
+                    favCursor.close();
                 }
             });
+
+
+            if (mSavedPosition != -1) {
+                rootView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        rootView.scrollTo(0, mSavedPosition);
+                    }
+                });
+            }
+
+
         }
+
 
         return rootView;
     }
@@ -394,7 +393,7 @@ public class DetailFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(MOVIE_TAG, mCurrentMovie);
-        ScrollView thisView = (ScrollView)mCurrentLayout.getParent();
-        outState.putInt(SCROLL_TAG,thisView.getScrollY());
+        ScrollView thisView = (ScrollView) mCurrentLayout.getParent();
+        outState.putInt(SCROLL_TAG, thisView.getScrollY());
     }
 }

@@ -30,8 +30,15 @@ public class DetailActivity extends AppCompatActivity {
         });
 
         if (savedInstanceState == null) {
+
+            MovieData currentMovie = getIntent().getParcelableExtra("CURRENT_MOVIE");
+            Bundle arguments = new Bundle();
+            arguments.putParcelable("CURRENT_MOVIE",currentMovie);
+            DetailFragment fragment = new DetailFragment();
+            fragment.setArguments(arguments);
+
             getFragmentManager().beginTransaction()
-                    .add(R.id.container, new DetailFragment())
+                    .add(R.id.detail_container, fragment)
                     .commit();
         }
     }

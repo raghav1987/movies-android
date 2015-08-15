@@ -39,6 +39,10 @@ public class MoviesFragment extends Fragment {
     public MoviesFragment() {
     }
 
+    public interface Callback {
+        public void onItemSelected(MovieData currentMovie);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -86,9 +90,8 @@ public class MoviesFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MovieData clickedMovie = (MovieData) mImageAdapter.getItem(position);
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra("CURRENT_MOVIE", clickedMovie);
-                startActivity(intent);
+
+                ((Callback)getActivity()).onItemSelected(clickedMovie);
             }
         });
 
