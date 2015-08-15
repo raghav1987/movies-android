@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -47,7 +48,7 @@ public class MoviesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        GridView moviesGridView = (GridView) rootView.findViewById(R.id.gridview_movies);
+        final GridView moviesGridView = (GridView) rootView.findViewById(R.id.gridview_movies);
 
         String previousStateSortBy;
         String preferenceSortBy;
@@ -90,7 +91,6 @@ public class MoviesFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MovieData clickedMovie = (MovieData) mImageAdapter.getItem(position);
-
                 ((Callback)getActivity()).onItemSelected(clickedMovie);
             }
         });
