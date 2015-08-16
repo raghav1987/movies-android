@@ -261,7 +261,6 @@ public class DetailFragment extends Fragment {
                     for (int i = 0; i < reviewArray.length(); i++) {
                         JSONObject currentObject = reviewArray.getJSONObject(i);
                         mCurrentMovie.getReviews().add(currentObject.getString("content"));
-//                        TODO: check to see if maybe reviews are missing, how to deal with that?
                     }
                     JSONArray videoArray = response.getJSONObject("videos").getJSONArray("results");
                     for (int i = 0; i < videoArray.length(); i++) {
@@ -273,8 +272,6 @@ public class DetailFragment extends Fragment {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-//                TODO: ask if its better practice to save an instance variable as mCurrentMovie
-//                TODO:      or is it better to pass it as a variable
                 mCurrentMovie.setTrailers(responseTrailers);
                 updateRemainingUI();
 
@@ -291,8 +288,6 @@ public class DetailFragment extends Fragment {
 
     }
 
-    //    TODO: definitely need to ask if its better practice to create a listview/recycleview here
-//    TODO: or not
     private void updateRemainingUI() {
         HashMap<String, String> trailers = mCurrentMovie.getTrailers();
         ArrayList<String> reviews = mCurrentMovie.getReviews();
@@ -355,7 +350,6 @@ public class DetailFragment extends Fragment {
         divider.setBackgroundColor(getResources().getColor(R.color.divider));
         mCurrentLayout.addView(divider);
 
-//        TODO: java question - I'm accessing the textview from the inner class - is it better practice to declare the first instance of tv as final and access it within the onClickListener class or is it a better idea to redeclare tv by casting the view in the onClick method?
 
         for (String review : reviews) {
             TextView tv = new TextView(mContext);
@@ -365,7 +359,7 @@ public class DetailFragment extends Fragment {
             tv.setMaxLines(3);
             tv.setEllipsize(TextUtils.TruncateAt.END);
 
-//          TODO: currently, upon rotation, i'm not storing the state of the reviews, i.e. are they expanded or not. The way to do that would probably be by instead of storing reviews as strings, but review objects with the property of the textView (in this case, the max lines of the ellipses) as a property of each review and then setting the ellipses irrespective of state
+
             mCurrentLayout.addView(tv);
             tv.setOnClickListener(new View.OnClickListener() {
                 @Override
